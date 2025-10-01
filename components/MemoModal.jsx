@@ -33,6 +33,26 @@ const colorOptions = [
   { value: 'gray', label: '회색', class: 'bg-gray-100 border-gray-300' }
 ];
 
+const timezoneOptions = [
+  'Asia/Seoul',
+  'Asia/Tokyo',
+  'Asia/Shanghai',
+  'Asia/Hong_Kong',
+  'Asia/Singapore',
+  'Asia/Bangkok',
+  'Asia/Kolkata',
+  'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Europe/Moscow',
+  'America/New_York',
+  'America/Los_Angeles',
+  'America/Chicago',
+  'America/Sao_Paulo',
+  'Australia/Sydney',
+  'UTC'
+];
+
 export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
   const [memo, setMemo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +60,9 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    color: 'blue'
+    color: 'blue',
+    timezone: 'Asia/Seoul',
+    time: '00:00'
   });
 
   const modalContentRef = useRef(null);
@@ -49,11 +71,19 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
   const isDesktop = !isMobile;
   const { user } = useAuth();
 
+  // 브라우저 기본 타임존으로 초기화
+  useEffect(() => {
+    if (open) {
+      const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul';
+      setFormData(prev => ({ ...prev, timezone: prev.timezone || browserTz }));
+    }
+  }, [open]);
+
   // 메모 불러오기
   const loadMemo = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/memos?date=${selectedDate}`);
+      const response = await fetch(`/api/memos?date=${selectedDate}`, { credentials: 'include' });
       const data = await response.json();
 
       if (response.ok && data.memo) {
@@ -61,7 +91,9 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
         setFormData({
           title: data.memo.title || '',
           content: data.memo.content || '',
-          color: data.memo.color || 'blue'
+          color: data.memo.color || 'blue',
+          timezone: data.memo.timezone || (Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'),
+          time: data.memo.time || '00:00'
         });
       } else {
         // 메모가 없는 경우 초기화
@@ -69,7 +101,9 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
         setFormData({
           title: '',
           content: '',
-          color: 'blue'
+          color: 'blue',
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',
+          time: '00:00'
         });
       }
     } catch (error) {
@@ -78,7 +112,9 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
       setFormData({
         title: '',
         content: '',
-        color: 'blue'
+        color: 'blue',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',
+        time: '00:00'
       });
     } finally {
       setIsLoading(false);
@@ -114,6 +150,20 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
     }));
   }, []);
 
+  const handleTimezoneChange = useCallback((e) => {
+    setFormData(prev => ({
+      ...prev,
+      timezone: e.target.value
+    }));
+  }, []);
+
+  const handleTimeChange = useCallback((e) => {
+    setFormData(prev => ({
+      ...prev,
+      time: e.target.value
+    }));
+  }, []);
+
   // 메모 저장/업데이트
   const handleSave = useCallback(async () => {
     if (!formData.content.trim()) {
@@ -125,16 +175,18 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
       setIsLoading(true);
       
       const method = memo ? 'PUT' : 'POST';
-      const response = await fetch('/api/memos', {
+      const response = await fetch('/api/memos', { credentials: 'include',
         method,
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           date: selectedDate,
+          time: formData.time,
           title: formData.title.trim(),
           content: formData.content.trim(),
-          color: formData.color
+          color: formData.color,
+          timezone: formData.timezone
         }),
       });
 
@@ -166,6 +218,7 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
       
       const response = await fetch(`/api/memos?date=${selectedDate}`, {
         method: 'DELETE',
+        credentials: 'include'
       });
 
       if (response.ok) {
@@ -173,7 +226,9 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
         setFormData({
           title: '',
           content: '',
-          color: 'blue'
+          color: 'blue',
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',
+          time: '00:00'
         });
         onMemoUpdate?.(); // 캘린더 업데이트 콜백
         onOpenChange(false); // 모달 닫기
@@ -205,6 +260,39 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
   if (!user) {
     return null;
   }
+
+  const TimezoneSelect = (
+    <div>
+      <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 mb-1">
+        시간대
+      </label>
+      <select
+        id="timezone"
+        value={formData.timezone}
+        onChange={handleTimezoneChange}
+        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        {timezoneOptions.map(tz => (
+          <option key={tz} value={tz}>{tz}</option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const TimeInput = (
+    <div>
+      <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
+        시간 (시:분)
+      </label>
+      <input
+        id="time"
+        type="time"
+        value={formData.time}
+        onChange={handleTimeChange}
+        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+  );
 
   if (isDesktop) {
     return (
@@ -266,6 +354,12 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
                   {formData.content.length}/1000
                 </div>
               </div>
+
+              {/* 시간대 선택 */}
+              {TimezoneSelect}
+
+              {/* 시간 선택 */}
+              {TimeInput}
 
               {/* 버튼들 */}
               <div className="flex gap-3 pt-2">
@@ -353,6 +447,12 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
                 {formData.content.length}/1000
               </div>
             </div>
+
+            {/* 시간대 선택 */}
+            {TimezoneSelect}
+
+            {/* 시간 선택 */}
+            {TimeInput}
 
             {/* 버튼들 */}
             <div className="flex gap-3 pt-2">

@@ -52,7 +52,7 @@ const generateCalendarData = (year, month, memos = [], forecastData = null, temp
     const currentDate = new Date(startDate);
     currentDate.setDate(startDate.getDate() + i);
     
-    const dateString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD 형식
+    const dateString = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`; // YYYY-MM-DD (로컬) 형식
     
     // 현재 날짜로부터 며칠 후인지 계산
     const daysDiff = Math.ceil((currentDate - today) / (1000 * 60 * 60 * 24));
@@ -177,7 +177,7 @@ export function MonthlyCalendar({ location }) {
     
     try {
       const monthString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-      const response = await fetch(`/api/memos?month=${monthString}`);
+      const response = await fetch(`/api/memos?month=${monthString}`, { credentials: 'include' });
       const data = await response.json();
       
       if (response.ok && data.memos) {
@@ -283,6 +283,8 @@ export function MonthlyCalendar({ location }) {
               `}>
                 {day.date}
               </div>
+              
+              
               
               {day.isCurrentMonth && (
                 <div className="space-y-1">

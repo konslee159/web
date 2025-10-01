@@ -58,6 +58,16 @@ export default function UpdateAccountPage() {
     if (!formData.name.trim()) newErrors.name = '이름을 입력해주세요.';
     if (formData.newPassword && !formData.currentPassword) newErrors.currentPassword = '현재 비밀번호를 입력해주세요.';
     if (formData.currentPassword && !formData.newPassword) newErrors.newPassword = '새 비밀번호를 입력해주세요.';
+    if (formData.newPassword) {
+      const pw = formData.newPassword;
+      const hasMin = pw.length >= 6;
+      const hasLower = /[a-z]/.test(pw);
+      const hasUpper = /[A-Z]/.test(pw);
+      const hasDigit = /\d/.test(pw);
+      if (!(hasMin && hasLower && hasUpper && hasDigit)) {
+        newErrors.newPassword = '비밀번호는 대문자, 소문자, 숫자를 포함하여 6자 이상이어야 합니다.';
+      }
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

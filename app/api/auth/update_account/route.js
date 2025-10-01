@@ -178,11 +178,14 @@ export async function PATCH(request) {
 
     // MongoDB 유효성 검사 에러 처리
     if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err) => ({
+      const errors = Object.values(error.errors).map((err) => {
         // @ts-ignore mongoose ValidationErrorItem has path
-        field: err.path,
-        message: err.message
-      }));
+        const field = err.path === 'password' ? 'newPassword' : err.path;
+        const message = err.path === 'password'
+          ? '비밀번호는 대문자, 소문자, 숫자를 포함하여 6자 이상이어야 합니다.'
+          : err.message;
+        return { field, message };
+      });
       return NextResponse.json(
         {
           error: '입력값이 올바르지 않습니다.',

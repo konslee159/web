@@ -1,0 +1,22 @@
+{
+  "common": {
+    "title": "Settings",
+    "description": "Configure notifications, temperature unit and language",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel"
+  },
+  "settings": {
+    "temperature": "Temperature Unit",
+    "celsius": "Celsius (°C)",
+    "fahrenheit": "Fahrenheit (°F)",
+    "notifications": "Notifications",
+    "notifications_hint": "Receive forecast notifications",
+    "language": "Language",
+    "ko": "Korean",
+    "en": "English",
+    "updated": "Settings updated.",
+    "update_error": "An error occurred while updating settings.",
+    "network_error": "A network error occurred."
+  }
+} 

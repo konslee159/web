@@ -11,6 +11,11 @@ const MemoSchema = new mongoose.Schema({
     required: [true, '날짜는 필수입니다.'],
     match: [/^\d{4}-\d{2}-\d{2}$/, '날짜는 YYYY-MM-DD 형식이어야 합니다.']
   },
+  time: {
+    type: String, // HH:MM 형식 (24시간)
+    match: [/^([01]\d|2[0-3]):[0-5]\d$/, '시간은 HH:MM 형식이어야 합니다.'],
+    default: '00:00'
+  },
   title: {
     type: String,
     trim: true,
@@ -28,6 +33,11 @@ const MemoSchema = new mongoose.Schema({
     enum: ['blue', 'green', 'yellow', 'red', 'purple', 'gray'],
     default: 'blue'
   },
+  timezone: {
+    type: String,
+    default: 'Asia/Seoul',
+  },
+
   createdAt: {
     type: Date,
     default: Date.now
@@ -51,6 +61,12 @@ MemoSchema.index({ userId: 1, date: 1 }, { unique: true });
 MemoSchema.index({ userId: 1, createdAt: -1 });
 MemoSchema.index({ date: 1 });
 
-const Memo = mongoose.models.Memo || mongoose.model('Memo', MemoSchema);
+if (mongoose.models.Memo) {
+  try {
+    // Ensure latest schema is used in dev/hot-reload environments
+    mongoose.deleteModel('Memo');
+  } catch (_) {}
+}
+const Memo = mongoose.model('Memo', MemoSchema);
 
 export default Memo;
