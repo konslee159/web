@@ -84,7 +84,12 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
     try {
       setIsLoading(true);
       const response = await fetch(`/api/memos?date=${selectedDate}`, { credentials: 'include' });
-      const data = await response.json();
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        data = { memo: null };
+      }
 
       if (response.ok && data.memo) {
         setMemo(data.memo);
@@ -189,8 +194,12 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
           timezone: formData.timezone
         }),
       });
-
-      const data = await response.json();
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        return alert('서버 응답이 올바르지 않습니다.');
+      }
 
       if (response.ok) {
         setMemo(data.memo);
@@ -233,7 +242,12 @@ export function MemoModal({ open, onOpenChange, selectedDate, onMemoUpdate }) {
         onMemoUpdate?.(); // 캘린더 업데이트 콜백
         onOpenChange(false); // 모달 닫기
       } else {
-        const data = await response.json();
+        let data = null;
+        try {
+          data = await response.json();
+        } catch (_) {
+          return alert('서버 응답이 올바르지 않습니다.');
+        }
         alert(data.error || '메모 삭제에 실패했습니다.');
       }
     } catch (error) {

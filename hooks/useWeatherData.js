@@ -33,8 +33,11 @@ export function useWeatherData(location = '서울') {
       // 중기육상예보 데이터 처리
       let forecast = null;
       if (forecastResponse.status === 'fulfilled' && forecastResponse.value.ok) {
-        const forecastJson = await forecastResponse.value.json();
-        if (forecastJson.success) {
+        let forecastJson = null;
+        try {
+          forecastJson = await forecastResponse.value.json();
+        } catch (_) {}
+        if (forecastJson?.success) {
           forecast = forecastJson.data;
         }
       }
@@ -42,8 +45,11 @@ export function useWeatherData(location = '서울') {
       // 중기기온 데이터 처리
       let temperature = null;
       if (temperatureResponse.status === 'fulfilled' && temperatureResponse.value.ok) {
-        const temperatureJson = await temperatureResponse.value.json();
-        if (temperatureJson.success) {
+        let temperatureJson = null;
+        try {
+          temperatureJson = await temperatureResponse.value.json();
+        } catch (_) {}
+        if (temperatureJson?.success) {
           temperature = temperatureJson.data;
         }
       }
@@ -51,8 +57,11 @@ export function useWeatherData(location = '서울') {
       // 중기전망 데이터 처리
       let outlook = null;
       if (outlookResponse.status === 'fulfilled' && outlookResponse.value.ok) {
-        const outlookJson = await outlookResponse.value.json();
-        if (outlookJson.success) {
+        let outlookJson = null;
+        try {
+          outlookJson = await outlookResponse.value.json();
+        } catch (_) {}
+        if (outlookJson?.success) {
           outlook = outlookJson.data;
         }
       }

@@ -44,7 +44,12 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        return { success: false, error: '서버 응답이 올바르지 않습니다.' };
+      }
 
       if (response.ok) {
         setUser(data.user);
@@ -69,7 +74,12 @@ export function AuthProvider({ children }) {
         body: JSON.stringify(userData),
       });
 
-      const data = await response.json();
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        return { success: false, error: '서버 응답이 올바르지 않습니다.' };
+      }
 
       if (response.ok) {
         return { success: true, message: data.message, user: data.user };
